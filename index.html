@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Proposal Generator</title>
+<style>
+:root{--ink:#23262B;--dim:#6A7076;--line:#D9D6CE;--paper:#F5F4F0;--panel:#FFFFFF;--acc:#3A4E9F;--sig:#B5641F;--warn:#A4312A;--ok:#2F6B4F;
+--mono:"SF Mono",Menlo,Consolas,monospace;--sans:-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;--serif:Georgia,"Times New Roman",serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--sans);padding:26px 30px 60px}
+h1{font-size:26px;letter-spacing:-.01em}
+h1 small{font-size:14px;color:var(--dim);font-weight:400;margin-left:10px}
+.sub{color:var(--dim);font-size:14px;margin:4px 0 16px}
+#banner{display:none;background:var(--warn);color:#fff;font-weight:800;font-size:19px;padding:12px 18px;border-radius:10px;margin:0 0 16px}
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+textarea{width:100%;height:120px;font:12px/1.4 var(--mono);border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel);color:var(--ink)}
+label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px}
+.bar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px}
+.bar .f{display:flex;flex-direction:column;gap:5px}
+input[type=number]{font:15px var(--sans);padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);width:92px}
+select{font:15px var(--sans);padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);width:230px}
+button{font:15px/1 var(--sans);font-weight:700;padding:11px 20px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+.note{font-size:13px;color:var(--dim)}
+#fict{display:none;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--sig);border:1px solid var(--sig);border-radius:7px;padding:4px 10px}
+#stage{display:none;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px;align-items:start}
+#doc{background:#FFFDF8;border:1px solid var(--line);border-radius:4px;box-shadow:0 2px 14px rgba(35,38,43,.08);padding:44px 48px;font:15.5px/1.62 var(--serif)}
+#doc .dhead{border-bottom:3px solid var(--acc);padding-bottom:14px;margin-bottom:18px}
+#doc .biz{font:700 21px var(--sans);letter-spacing:.01em;color:var(--acc)}
+#doc .proj{font:700 16px var(--serif);margin-top:10px}
+#doc .meta{font:13px var(--sans);color:var(--dim);margin-top:4px}
+#doc p{margin:0 0 12px}
+#doc h3{font:700 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin:20px 0 8px}
+#doc table{width:100%;border-collapse:collapse;font:13.5px var(--sans);margin-bottom:8px}
+#doc th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);text-align:left;padding:4px 8px;border-bottom:2px solid var(--line)}
+#doc td{padding:5px 8px;border-top:1px solid #ECE9E1;font-variant-numeric:tabular-nums;vertical-align:top}
+#doc td.n,#doc th.n{text-align:right}
+#doc tr.sec td{font:700 13px var(--sans);background:#F4F2EB;padding-top:7px;padding-bottom:7px}
+#doc tr.sub td{font-weight:700;border-top:2px solid var(--line)}
+#doc tr.total td{font:800 15px var(--sans);border-top:3px double var(--ink)}
+#doc .optrow label{all:unset;cursor:pointer}
+#doc input[type=checkbox]{width:16px;height:16px;accent-color:var(--acc);vertical-align:-2px;margin-right:7px}
+#doc .sig{display:grid;grid-template-columns:1fr 1fr;gap:34px;margin-top:30px;font:13px var(--sans)}
+#doc .sig .box{border-top:1.5px solid var(--ink);padding-top:6px;color:var(--dim)}
+#doc .chrome{font:11.5px var(--sans);color:var(--dim);margin-top:26px;border-top:1px solid var(--line);padding-top:9px}
+aside section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+aside h2{font-size:16px;margin-bottom:4px}
+aside .why{font-size:13px;color:var(--dim);margin-bottom:10px}
+aside table{width:100%;border-collapse:collapse;font-size:13.5px}
+aside th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);text-align:left;padding:4px 6px;border-bottom:2px solid var(--line)}
+aside td{padding:5px 6px;border-top:1px solid #ECE8DF;vertical-align:top}
+#recon{font:13px/1.7 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+#recon .ok{color:var(--ok);font-weight:700} #recon .bad{color:var(--warn);font-weight:700}
+footer{margin-top:24px;font-size:12.5px;color:var(--dim)}
+@media (max-width:980px){#stage{grid-template-columns:1fr}.wrap{grid-template-columns:1fr}#doc{padding:26px 22px}}
+</style></head><body>
+<h1>The Proposal Generator <small>the quote you priced, grown into the document a client signs</small></h1>
+<div class="sub">Everything runs in this page. Nothing you paste leaves your machine, and not one sentence in the document is written by the machine — every paragraph comes from your own library, and the page proves it on every run. <span id="fict">fictional sample data</span></div>
+<div id="banner"></div>
+<div class="wrap">
+  <div><label>the job's line items (CSV: Line, Section, Item, Qty, Unit, Unit Price, Optional)</label><textarea id="icsv" spellcheck="false"></textarea></div>
+  <div><label>your proposal library (CSV: Kind, Fieldname, Text — your names, your clauses, your words)</label><textarea id="lcsv" spellcheck="false"></textarea></div>
+</div>
+<div class="bar">
+  <button id="sample">Load the sample job</button>
+  <button id="go" class="primary">Build the proposal</button>
+  <div class="f"><label for="s_sched">payment schedule</label><select id="s_sched"><option value="50-40-10">50 / 40 / 10</option><option value="40-40-20">40 / 40 / 20</option><option value="thirds">thirds (34 / 33 / 33)</option></select></div>
+  <div class="f"><label for="s_days">valid for (days)</label><input id="s_days" type="number" value="30" min="1" step="1"></div>
+  <div class="f"><label for="s_detail">pricing detail</label><select id="s_detail"><option value="itemized">every line, itemized</option><option value="summary">section subtotals only</option></select></div>
+  <button id="dl">Download the proposal (HTML)</button>
+</div>
+<div id="stage">
+<div id="doc"></div>
+<aside>
+<section><h2>Rows this page refused</h2>
+<div class="why">A row that can't be trusted is refused and listed with its reason — never silently swallowed. A proposal is a signing document; guessing has no place in one.</div>
+<table><thead><tr><th>File</th><th class="n">Row</th><th>Id / key</th><th>Reason</th></tr></thead><tbody id="refT"></tbody></table></section>
+<div id="recon"></div>
+</aside>
+</div>
+<footer>The Proposal Generator · built on "Build It With AI" · one file, no internet, no account. Sample business (Juniper & Stone Landscaping, proposing to Priya and Sam Calloway) is fictional. Table headers, schedule labels and signature labels are fixed page chrome; every sentence comes from your library.</footer>
+<script>// The Proposal Generator — final engine (Episode 18). All money in integer cents; quantities in
+// integer hundredths; every division through halfUpDiv so two implementations cannot drift.
+// The engine NEVER writes a sentence: every paragraph is a library clause with fields filled,
+// and a provenance audit proves that on every run.
+// window.PG.build(itemsCsv, libraryCsv, settings) -> report object.
+(function (root) {
+  "use strict";
+  const DEF = { schedule: "50-40-10", validityDays: 30, detail: "itemized", accepted: [] };
+  const PRESETS = {
+    "50-40-10": [["Deposit to schedule the work", 50], ["Progress draw, mid-project", 40], ["Final payment at walkthrough", 10]],
+    "40-40-20": [["Deposit to schedule the work", 40], ["Progress draw, mid-project", 40], ["Final payment at walkthrough", 20]],
+    "thirds":   [["Deposit to schedule the work", 34], ["Progress draw, mid-project", 33], ["Final payment at walkthrough", 33]],
+  };
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  function splitCsv(text) {
+    const rows = [];
+    let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+        else cell += ch;
+      } else if (ch === '"') q = true;
+      else if (ch === ",") { row.push(cell); cell = ""; }
+      else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if (ch !== "\r") cell += ch;
+    }
+    if (cell.length || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(r => r.length > 1 || (r[0] || "").trim() !== "");
+  }
+
+  const halfUpDiv = (a, b) => Math.floor((2 * a + b) / (2 * b));
+  const pctTenths = (delta, base) => (delta < 0 ? -1 : 1) * halfUpDiv(Math.abs(delta) * 1000, base);
+
+  function cents(s) {
+    const m = /^\s*\$?\s*(-?)([0-9][0-9,]*)(?:\.([0-9]{1,2}))?\s*$/.exec(s || "");
+    if (!m) return null;
+    const sign = m[1] === "-" ? -1 : 1;
+    const whole = parseInt(m[2].replace(/,/g, ""), 10);
+    const frac = m[3] ? (m[3].length === 1 ? +m[3] * 10 : +m[3]) : 0;
+    return sign * (whole * 100 + frac);
+  }
+  function qtyCenti(s) {
+    const m = /^\s*([0-9][0-9,]*)(?:\.([0-9]{1,2}))?\s*$/.exec(s || "");
+    if (!m) return null;
+    const frac = m[2] ? (m[2].length === 1 ? +m[2] * 10 : +m[2]) : 0;
+    return parseInt(m[1].replace(/,/g, ""), 10) * 100 + frac;
+  }
+  const lineMoney = (qc, unit) => halfUpDiv(qc * unit, 100);
+
+  function parseDateYMD(s) {
+    const m = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(s || "");
+    if (!m) return null;
+    const y = +m[1], mo = +m[2], d = +m[3];
+    if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+    const t = Date.UTC(y, mo - 1, d);
+    const chk = new Date(t);
+    if (chk.getUTCFullYear() !== y || chk.getUTCMonth() !== mo - 1 || chk.getUTCDate() !== d) return null;
+    return t;
+  }
+  function fmtDate(utcMs) {
+    const d = new Date(utcMs);
+    return MONTHS[d.getUTCMonth()] + " " + d.getUTCDate() + ", " + d.getUTCFullYear();
+  }
+
+  function parseItems(itemsCsv) {
+    const rows = splitCsv(itemsCsv);
+    if (!rows.length) throw new Error("Paste the items file (or load the sample job).");
+    const h = rows[0].map(s => s.trim().toLowerCase());
+    const idx = n => h.indexOf(n);
+    for (const n of ["line", "section", "item", "qty", "unit", "unit price", "optional"])
+      if (idx(n) === -1) throw new Error("The items file is missing a “" + n + "” column.");
+    const seen = new Map();
+    const order = [];
+    const refused = [];
+    let itemRows = 0;
+    for (let r = 1; r < rows.length; r++) {
+      itemRows++;
+      const row = rows[r], ln = r + 1;
+      const g = n => (row[idx(n)] === undefined ? "" : row[idx(n)]);
+      const id = g("line").trim();
+      const section = g("section").trim();
+      const item = g("item").trim();
+      const unit = g("unit").trim();
+      const qc = qtyCenti(g("qty"));
+      const up = cents(g("unit price"));
+      const rawFlag = g("optional");
+      const flag = rawFlag.trim().toLowerCase();
+      if (!id) { refused.push({ line: ln, id: "(blank)", reason: "no line id" }); continue; }
+      if (seen.has(id)) { refused.push({ line: ln, id, reason: "duplicate line id — the first row was kept" }); continue; }
+      if (!section) { refused.push({ line: ln, id, reason: "no section" }); continue; }
+      if (qc === null || qc <= 0) { refused.push({ line: ln, id, reason: "quantity unreadable: “" + g("qty").trim() + "”" }); continue; }
+      if (up === null || up < 1) { refused.push({ line: ln, id, reason: "unit price unreadable: “" + g("unit price").trim() + "”" }); continue; }
+      let optional;
+      if (flag === "" || flag === "no") optional = false;
+      else if (flag === "yes") optional = true;
+      else { refused.push({ line: ln, id, reason: "optional flag unreadable: “" + rawFlag.trim() + "” — use yes, no, or leave it blank" }); continue; }
+      seen.set(id, true);
+      order.push({ id, section, item, unit, qty_c: qc, unitPrice: up, optional,
+        lineTotal: lineMoney(qc, up) });
+    }
+    return { itemRows, lines: order, refused };
+  }
+
+  function parseLibrary(libraryCsv) {
+    const rows = splitCsv(libraryCsv);
+    if (!rows.length) throw new Error("Paste the library file (or load the sample job).");
+    const h = rows[0].map(s => s.trim().toLowerCase());
+    const idx = n => h.indexOf(n);
+    for (const n of ["kind", "fieldname", "text"])
+      if (idx(n) === -1) throw new Error("The library file is missing a “" + n + "” column.");
+    const fields = new Map(), clauses = [];
+    const seenClause = new Map();
+    const refused = [];
+    let libraryRows = 0;
+    for (let r = 1; r < rows.length; r++) {
+      libraryRows++;
+      const row = rows[r], ln = r + 1;
+      const g = n => (row[idx(n)] === undefined ? "" : row[idx(n)]);
+      const kind = g("kind").trim().toLowerCase();
+      const key = g("fieldname").trim();
+      const text = g("text");
+      if (kind !== "field" && kind !== "clause") { refused.push({ line: ln, key: key || "(blank)", reason: "kind unreadable: “" + g("kind").trim() + "” — use field or clause" }); continue; }
+      if (!key) { refused.push({ line: ln, key: "(blank)", reason: "no fieldname" }); continue; }
+      if (!String(text).trim()) { refused.push({ line: ln, key, reason: "empty text" }); continue; }
+      if (kind === "field") {
+        if (fields.has(key.toLowerCase())) { refused.push({ line: ln, key, reason: "duplicate field — the first row was kept" }); continue; }
+        fields.set(key.toLowerCase(), String(text));
+      } else {
+        if (seenClause.has(key.toLowerCase())) { refused.push({ line: ln, key, reason: "duplicate clause — the first row was kept" }); continue; }
+        seenClause.set(key.toLowerCase(), true);
+        clauses.push({ key, text: String(text) });
+      }
+    }
+    return { libraryRows, fields, clauses, refused };
+  }
+
+  function substitute(text, values) {
+    const missing = [];
+    const out = text.replace(/\{\{\s*([^}]*?)\s*\}\}/g, (whole, name) => {
+      const v = values.get(String(name).toLowerCase());
+      if (v === undefined) { missing.push(String(name)); return whole; }
+      return v;
+    });
+    return { out, missing };
+  }
+
+  function build(itemsCsv, libraryCsv, settings) {
+    const S = Object.assign({}, DEF, settings || {});
+    if (!PRESETS[S.schedule]) S.schedule = DEF.schedule;
+    const days = Math.max(1, Math.floor(+S.validityDays || DEF.validityDays));
+    const I = parseItems(itemsCsv);
+    const L = parseLibrary(libraryCsv);
+
+    for (const req of ["business", "client", "project", "date"])
+      if (!L.fields.has(req)) throw new Error("The library is missing the “" + req + "” field.");
+    const dateMs = parseDateYMD(L.fields.get("date"));
+    if (dateMs === null) throw new Error("The library “date” field must be a real date written YYYY-MM-DD.");
+    const validUntil = fmtDate(dateMs + days * 86400000);
+
+    const baseLines = I.lines.filter(l => !l.optional);
+    const optionLines = I.lines.filter(l => l.optional);
+    const acceptedSet = new Set((S.accepted || []).map(String));
+    const accepted = optionLines.filter(l => acceptedSet.has(l.id));
+
+    // sections in file order of first appearance
+    const secOrder = [];
+    const secMap = new Map();
+    for (const l of baseLines) {
+      const k = l.section;
+      if (!secMap.has(k)) { secMap.set(k, { name: k, subtotalC: 0, lines: [] }); secOrder.push(k); }
+      const s = secMap.get(k);
+      s.subtotalC += l.lineTotal;
+      s.lines.push({ id: l.id, item: l.item, unit: l.unit, qty_c: l.qty_c, unitPrice: l.unitPrice, lineTotal: l.lineTotal });
+    }
+    const sections = secOrder.map(k => secMap.get(k));
+
+    const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
+    const baseTotal = sum(baseLines, l => l.lineTotal);
+    const optionsTotal = sum(optionLines, l => l.lineTotal);
+    const acceptedTotal = sum(accepted, l => l.lineTotal);
+    const contractTotal = baseTotal + acceptedTotal;
+
+    const preset = PRESETS[S.schedule];
+    const d1 = halfUpDiv(contractTotal * preset[0][1], 100);
+    const d2 = halfUpDiv(contractTotal * preset[1][1], 100);
+    const d3 = contractTotal - d1 - d2;
+    const schedule = [
+      { label: preset[0][0], pct: preset[0][1], amountC: d1 },
+      { label: preset[1][0], pct: preset[1][1], amountC: d2 },
+      { label: preset[2][0], pct: preset[2][1], amountC: d3 },
+    ];
+
+    // substitution values: library fields + computed valid_until
+    const values = new Map(L.fields);
+    values.set("valid_until", validUntil);
+
+    const paragraphs = [];
+    const missingAll = [];
+    for (const c of L.clauses) {
+      const r = substitute(c.text, values);
+      paragraphs.push({ key: c.key, text: r.out });
+      for (const m of r.missing) missingAll.push({ clause: c.key, placeholder: m });
+    }
+    const fieldsFilled = missingAll.length === 0 && paragraphs.every(p => !p.text.includes("{{"));
+
+    // provenance audit: every rendered paragraph must byte-equal its clause with fields filled.
+    let provenanceOk = true;
+    for (let i = 0; i < L.clauses.length; i++) {
+      const again = substitute(L.clauses[i].text, values).out;
+      if (paragraphs[i].key !== L.clauses[i].key || paragraphs[i].text !== again) { provenanceOk = false; break; }
+    }
+
+    const counts = { itemRows: I.itemRows, libraryRows: L.libraryRows,
+      base: baseLines.length, options: optionLines.length, accepted: accepted.length,
+      refusedItems: I.refused.length, refusedLibrary: L.refused.length, sections: sections.length };
+    const rowsTie = counts.base + counts.options + counts.refusedItems === counts.itemRows;
+    const sectionsTie = sum(sections, s => s.subtotalC) === baseTotal;
+    const scheduleTie = d1 + d2 + d3 === contractTotal;
+    const refusedShare_tenths = counts.itemRows ? pctTenths(counts.refusedItems, counts.itemRows) : 0;
+    const trusted = rowsTie && sectionsTie && scheduleTie && fieldsFilled && provenanceOk && refusedShare_tenths <= 200;
+    let banner = "";
+    if (!trusted) {
+      banner = "DO NOT TRUST THIS PROPOSAL — " + (!rowsTie ? "the line buckets do not tie."
+        : !sectionsTie ? "the section subtotals do not add to the base total."
+        : !scheduleTie ? "the payment schedule does not add to the contract total."
+        : !fieldsFilled ? "a clause names a field the library does not fill: {{" + missingAll[0].placeholder + "}} in the “" + missingAll[0].clause + "” clause."
+        : !provenanceOk ? "a sentence in this document does not come from your library."
+        : "too many rows refused (" + (refusedShare_tenths / 10).toFixed(1) + "%). Fix the export and run it again.");
+    }
+
+    return {
+      settings: { schedule: S.schedule, validityDays: days, detail: S.detail === "summary" ? "summary" : "itemized",
+        accepted: optionLines.filter(l => acceptedSet.has(l.id)).map(l => l.id) },
+      counts,
+      money: { baseTotal, optionsTotal, acceptedTotal, contractTotal },
+      schedule,
+      sections,
+      optionLines: optionLines.map(l => ({ id: l.id, item: l.item, unit: l.unit, qty_c: l.qty_c,
+        unitPrice: l.unitPrice, lineTotal: l.lineTotal, accepted: acceptedSet.has(l.id) })),
+      refusedItems: I.refused,
+      refusedLibrary: L.refused,
+      fields: { business: L.fields.get("business"), client: L.fields.get("client"),
+        project: L.fields.get("project"), contact: L.fields.get("contact") || "",
+        date: L.fields.get("date").trim(), valid_until: validUntil },
+      paragraphs,
+      recon: { rowsTie, sectionsTie, scheduleTie, fieldsFilled, provenanceOk, refusedShare_tenths, trusted, banner },
+    };
+  }
+
+  root.PG = { build, _cents: cents, _qtyCenti: qtyCenti, _halfUpDiv: halfUpDiv, _fmtDate: fmtDate, _parseDateYMD: parseDateYMD };
+})(typeof window !== "undefined" ? window : (typeof module !== "undefined" ? module.exports : this));
+</script>
+<script>
+const SAMPLE_I = "Line,Section,Item,Qty,Unit,Unit Price,Optional\nL-01,Site preparation,Demolition & haul-off - existing patio and deck,1,lot,2850.00,\nL-02,Site preparation,Grading & drainage correction,1,lot,3400.00,\nL-03,Site preparation,Soil amendment & fine grading,1,lot,1240.00,\nL-04,Hardscape,Bluestone patio - supplied & set,420,sq ft,28.50,\nL-05,Hardscape,Flagstone walkway - gate to patio,160,sq ft,24.00,\nL-06,Hardscape,Seat wall with cap - 18 in,32,lin ft,115.00,\nL-05,Hardscape,Flagstone walk - shed spur (second block),88.5,sq ft,24.00,\nL-07,Planting & lawn,\"Shade trees - 2 in caliper, installed\",6,each,485.00,\nL-08,Planting & lawn,Shrubs & perennials per planting plan,1,lot,4160.00,\nL-09,Planting & lawn,Sod - fescue blend,2200,sq ft,1.85,\nL-10,Planting & lawn,Mulch & steel edging,1,lot,980.00,\nL-11,Irrigation,\"Irrigation - 6 zones, supplied & installed\",6,zone,740.00,\nL-12,Irrigation,Smart controller & rain sensor,1,each,630.00,\nL-13,Irrigation,\"Backflow preventer, permit & inspection\",1,lot,412.07,\nL-14,Low-voltage lighting,Path & step lights - installed,14,each,185.00,\nL-15,Low-voltage lighting,Transformer & wiring runs,1,lot,1140.00,\nL-16,Options,\"Outdoor kitchen rough-in (gas, water, power)\",1,lot,6850.00,Yes\nL-17,Options,Lighting scene controller & app setup,1,lot,1480.00,yes\nL-18,Hardscape,Boulder placement - client-supplied stone,ask Dave,each,95.00,\nL-19,Hardscape,Fire pit - masonry,1,lot,TBD,\nL-20,Low-voltage lighting,Moonlighting - the two oaks,2,each,420.00,sure\n";
+const SAMPLE_L = "Kind,Fieldname,Text\nfield,business,Juniper & Stone Landscaping\nfield,client,Priya and Sam Calloway\nfield,project,Backyard renovation at 42 Fernwood Court\nfield,date,2026-11-03\nfield,contact,proposals@example.com\nclause,intro,\"This proposal describes the work {{business}} will perform for {{client}} on the project named above, the price of that work, and the terms both parties sign.\"\nclause,scope_note,\"The scope below is the whole job. If a thing is not written here, it is not included, and that is a protection for both of us.\"\nclause,payment,Payment follows the schedule below. Each payment is due within seven days of its milestone. Work pauses when a payment runs more than fourteen days late.\nclause,warranty,All workmanship carries a two-year warranty from the date of completion. Plant material carries a one-growing-season replacement guarantee when the watering schedule we leave behind is followed. Manufacturer warranties pass through as written.\nclause,exclusions,\"This price does not include: permits beyond those listed, rock excavation below twelve inches, utility relocation, or repair of irrigation lines that do not appear on the as-built drawing.\"\nclause,changes,Changes are priced in writing before the work happens and signed the same way this proposal is.\nclause,validity,\"This proposal is valid until {{valid_until}}. After that date the prices in it are a conversation, not a commitment.\"\nclause,acceptance,\"Signing below accepts the scope, the price, the selected options, and the terms of this proposal. Questions first are welcome: {{contact}}.\"\n";
+const $=id=>document.getElementById(id);
+const money=c=>(c<0?"-$":"$")+Math.abs(c/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const qty=qc=>(qc%100===0)?String(qc/100):(qc/100).toFixed(2);
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+let LAST=null, ACCEPTED=[];
+function settings(){
+  return {schedule:$("s_sched").value, validityDays:Math.max(1,Math.floor(+$("s_days").value||30)),
+          detail:$("s_detail").value, accepted:ACCEPTED.slice()};
+}
+function docHtml(R,forDownload){
+  const F=R.fields;
+  let h='<div class="dhead"><div class="biz">'+esc(F.business)+'</div>'
+    +'<div class="proj">Proposal — '+esc(F.project)+'</div>'
+    +'<div class="meta">Prepared for '+esc(F.client)+' · '+esc(F.date)+(F.contact?' · '+esc(F.contact):'')+'</div></div>';
+  const paras={}; for(const p of R.paragraphs) paras[p.key]=p.text;
+  const emit=k=>{ if(paras[k]!==undefined){ h+='<p data-clause="'+esc(k)+'">'+esc(paras[k])+'</p>'; delete paras[k]; } };
+  emit("intro");
+  h+='<h3>Scope &amp; pricing</h3>'; emit("scope_note");
+  h+='<table><thead><tr><th>Item</th><th class="n">Qty</th><th class="n">Unit price</th><th class="n">Total</th></tr></thead><tbody>';
+  for(const s of R.sections){
+    h+='<tr class="sec"><td colspan="4">'+esc(s.name)+'</td></tr>';
+    if(R.settings.detail==="itemized")
+      for(const l of s.lines) h+='<tr><td>'+esc(l.item)+'</td><td class="n">'+qty(l.qty_c)+' '+esc(l.unit)+'</td><td class="n">'+money(l.unitPrice)+'</td><td class="n">'+money(l.lineTotal)+'</td></tr>';
+    h+='<tr class="sub"><td colspan="3">'+esc(s.name)+' subtotal</td><td class="n">'+money(s.subtotalC)+'</td></tr>';
+  }
+  h+='<tr class="total"><td colspan="3">Base price</td><td class="n" id="d_base">'+money(R.money.baseTotal)+'</td></tr></tbody></table>';
+  if(R.optionLines.length){
+    h+='<h3>Options — yours to accept</h3><table><thead><tr><th>Option</th><th class="n">Qty</th><th class="n">Price</th></tr></thead><tbody>';
+    for(const l of R.optionLines){
+      const box=forDownload?(l.accepted?"☑":"☐"):'<input type="checkbox" data-opt="'+esc(l.id)+'"'+(l.accepted?" checked":"")+'>';
+      h+='<tr class="optrow"><td><label>'+box+' '+esc(l.item)+'</label></td><td class="n">'+qty(l.qty_c)+' '+esc(l.unit)+'</td><td class="n">'+money(l.lineTotal)+'</td></tr>';
+    }
+    h+='</tbody></table>';
+  }
+  h+='<table><tbody><tr class="total"><td colspan="3">Contract total'+(R.counts.accepted?' (with '+R.counts.accepted+' selected option'+(R.counts.accepted===1?'':'s')+')':'')+'</td><td class="n" id="d_total">'+money(R.money.contractTotal)+'</td></tr></tbody></table>';
+  h+='<h3>Payment schedule</h3><table><tbody>';
+  for(const s2 of R.schedule) h+='<tr><td>'+esc(s2.label)+'</td><td class="n">'+s2.pct+'%</td><td class="n">'+money(s2.amountC)+'</td></tr>';
+  h+='<tr class="sub"><td colspan="2">Schedule total</td><td class="n" id="d_sched">'+money(R.schedule[0].amountC+R.schedule[1].amountC+R.schedule[2].amountC)+'</td></tr></tbody></table>';
+  emit("payment");
+  h+='<h3>Terms</h3>';
+  for(const k of Object.keys(paras)) if(k!=="acceptance") emit(k);
+  h+='<h3>Acceptance</h3>'; emit("acceptance");
+  h+='<div class="sig"><div class="box">'+esc(F.client)+' — signature &amp; date</div><div class="box">'+esc(F.business)+' — signature &amp; date</div></div>';
+  h+='<div class="chrome">Table headers, schedule labels and signature labels are fixed page chrome. Every sentence above comes from the library file, fields filled — audited on every run.</div>';
+  return h;
+}
+function run(){
+  const i=$("icsv").value,l=$("lcsv").value;
+  if(!i.trim()||!l.trim()){alert("Paste both files (or load the sample job).");return;}
+  let R;
+  try{R=window.PG.build(i,l,settings());}catch(e){alert(e.message);return;}
+  LAST=R; ACCEPTED=R.settings.accepted.slice();
+  $("stage").style.display="grid";
+  const b=$("banner");
+  if(!R.recon.trusted){b.style.display="block";b.textContent=R.recon.banner;$("doc").innerHTML='<p style="font-family:var(--sans);color:var(--warn);font-weight:700">This proposal was withheld. Fix the reason in the banner above and run it again — a document you sign has no room for “probably fine”.</p>';}
+  else {b.style.display="none";$("doc").innerHTML=docHtml(R,false);
+    for(const cb of document.querySelectorAll("#doc input[type=checkbox]")) cb.addEventListener("change",()=>{
+      const id=cb.dataset.opt;
+      if(cb.checked){ if(!ACCEPTED.includes(id)) ACCEPTED.push(id); } else ACCEPTED=ACCEPTED.filter(x=>x!==id);
+      window.__done=false; run();
+    });}
+  const refRows=R.refusedItems.map(r=>'<tr><td>items.csv</td><td class="n">'+r.line+'</td><td>'+esc(r.id)+'</td><td>'+esc(r.reason)+'</td></tr>')
+    .concat(R.refusedLibrary.map(r=>'<tr><td>library.csv</td><td class="n">'+r.line+'</td><td>'+esc(r.key)+'</td><td>'+esc(r.reason)+'</td></tr>'));
+  $("refT").innerHTML=refRows.join("")||'<tr><td colspan="4" class="note">Nothing refused.</td></tr>';
+  const rc=R.recon;
+  $("recon").innerHTML=
+   'self-audit, run every time\n'+
+   'lines      '+R.counts.itemRows+' in = '+R.counts.base+' base + '+R.counts.options+' options + '+R.counts.refusedItems+' refused  <span class="'+(rc.rowsTie?"ok":"bad")+'">'+(rc.rowsTie?"ties":"DOES NOT TIE")+'</span>\n'+
+   'sections   '+R.counts.sections+' subtotals re-added against the base price  <span class="'+(rc.sectionsTie?"ok":"bad")+'">'+(rc.sectionsTie?"to the cent":"DOES NOT TIE")+'</span>\n'+
+   'schedule   three payments re-added against the contract total  <span class="'+(rc.scheduleTie?"ok":"bad")+'">'+(rc.scheduleTie?"to the cent":"DOES NOT TIE")+'</span>\n'+
+   'fields     every curly-brace placeholder filled  <span class="'+(rc.fieldsFilled?"ok":"bad")+'">'+(rc.fieldsFilled?"all filled":"HOLES")+'</span>\n'+
+   'sentences  every paragraph traced to your library, byte for byte  <span class="'+(rc.provenanceOk?"ok":"bad")+'">'+(rc.provenanceOk?"all yours":"NOT YOURS")+'</span>\n'+
+   'refused    '+(rc.refusedShare_tenths/10).toFixed(1)+'% of item rows  <span class="'+(rc.refusedShare_tenths<=200?"ok":"bad")+'">'+(rc.refusedShare_tenths<=200?"within tolerance":"over 20% — do not trust")+'</span>';
+  window.__done=true;
+}
+$("sample").addEventListener("click",()=>{$("icsv").value=SAMPLE_I;$("lcsv").value=SAMPLE_L;$("fict").style.display="inline-block";ACCEPTED=[];window.__done=false;run();});
+$("go").addEventListener("click",()=>{window.__done=false;run();});
+for(const id of ["s_sched","s_days","s_detail"]) $(id).addEventListener("change",()=>{if(LAST){window.__done=false;run();}});
+$("dl").addEventListener("click",()=>{
+  if(!LAST){alert("Build the proposal first.");return;}
+  if(!LAST.recon.trusted){alert("This proposal was withheld — fix the banner's reason first.");return;}
+  const css=document.querySelector("style").textContent;
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>Proposal — '+esc(LAST.fields.project)+'</title><style>'+css+' body{background:#fff;padding:0} #doc{box-shadow:none;border:0}</style></head><body><div id="doc">'+docHtml(LAST,true)+'</div></body></html>';
+  const b=new Blob([html],{type:"text/html"});const u=URL.createObjectURL(b);
+  const a=document.createElement("a");a.href=u;a.download="proposal.html";a.click();URL.revokeObjectURL(u);
+});
+window.__loaded=true;
+</script></body></html>

@@ -1,0 +1,67 @@
+THE PROPOSAL GENERATOR — the exact prompts from the episode, word for word.
+Paste them into your AI assistant in order. Prompt 1 builds the first version; prompts 2 and 3
+are the fixes from the episode — they exist because the first two versions were wrong in ways
+worth understanding before you let any machine write a document your client signs.
+
+================================ PROMPT 1 ================================
+
+Build me a single HTML file I can open in my browser, no internet, no account, that turns my
+price list into a client-ready proposal.
+
+What it's for: I run a small design-build landscaping company. I already keep the job's line
+items in a spreadsheet, and I keep a file of the wording I use — my warranty, my payment terms,
+my exclusions. Writing the actual proposal document is the slow part.
+
+Data in: two pastes.
+1) The job's line items: CSV with columns Line, Section, Item, Qty, Unit, Unit Price, Optional —
+   Optional marks upgrades the client can say yes to.
+2) My proposal library: CSV with columns Kind, Fieldname, Text — my business name, the client,
+   the project, the date, and the clauses I actually use.
+
+What I want out: the finished proposal — scope grouped by section with prices, the options, a
+payment schedule, my terms, and a signature block. Something I could send today.
+
+================================ PROMPT 2 ================================
+
+The first version wrote its own document. It promised a comprehensive five-year workmanship
+warranty — my library says two years — and "fully licensed, bonded and insured", words I never
+gave it. It also priced the job at every row it could read, folded into one total: both options
+the client hasn't accepted, a duplicate row, everything. And the rows it couldn't read just
+vanished. Rebuild the rules:
+
+- NOT ONE SENTENCE in the document comes from you. Every paragraph is a clause from my library,
+  with my field names filled in. If it isn't in the library, it isn't in the proposal.
+- Optional lines NEVER join the price. They sit in their own section the client can accept,
+  and the contract total only moves when one is accepted.
+- The payment schedule is computed from the contract total with the percentages shown.
+- Scope is grouped by my sections, each with a subtotal, and the subtotals must add to the base
+  price exactly.
+
+================================ PROMPT 3 ================================
+
+Now make it trustworthy enough to sign.
+
+- All money arithmetic in whole integer cents with one written-down rounding rule (round half
+  up). The LAST payment in the schedule is the remainder after the others, so the three payments
+  always add to the contract total exactly — a schedule that disagrees with its own total by
+  even a cent has no place in a signing document.
+- Refuse what you can't read, out loud: a quantity that isn't a number, a price that says "TBD",
+  a duplicate line id, a blank section. The Optional column accepts yes, no, or blank — anything
+  else is refused with its row and the reason, never guessed.
+- The valid-until date is computed from the proposal date in my library plus a validity window I
+  set. Never from "today" — a document that changes meaning depending on the day you open it is
+  not a document.
+- Audit the document itself on every run: every curly-brace field filled; every paragraph traced
+  back to my library byte for byte, so nothing invented can hide in the terms; lines in = base +
+  options + refused; section subtotals re-added against the base price; the schedule re-added
+  against the contract total. If any audit fails, or too many rows are refused, print DO NOT
+  TRUST THIS PROPOSAL across the top, say why, and withhold the document.
+
+=========================== THE SECOND OPINION ===========================
+
+The episode also used an independent checker — the same rules implemented again in Python by a
+separate session, sharing no code with the page — run on the same two files. checker.py is in
+this folder. That second opinion is what caught the duplicate row priced twice, the capital-Y
+"Yes" that smuggled a $6,850 option into the base price, and the payment schedule that added up
+to one cent more than the total printed beside it. When two implementations disagree, one of
+them is wrong, and a signing document is the worst possible place to find out late.
